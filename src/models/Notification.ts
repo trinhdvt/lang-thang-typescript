@@ -18,17 +18,17 @@ class Notification extends Model {
         primaryKey: true,
         autoIncrement: true
     })
-    id!: Number;
+    id!: number;
 
     @ForeignKey(() => Account)
     @Column
-    accountId!: Number;
+    accountId!: number;
 
     @BelongsTo(() => Account, 'account_id')
     account!: Account;
 
     @Column
-    content!: String;
+    content!: string;
 
     @Column
     notifyDate?: Date;
@@ -41,14 +41,14 @@ class Notification extends Model {
 
     @ForeignKey(() => Post)
     @Column
-    postId!: Number;
+    postId!: number;
 
     @BelongsTo(() => Post)
     post!: Post;
 
     @ForeignKey(() => Account)
     @Column
-    sourceAccountId!: Number;
+    sourceAccountId!: number;
 
     @BelongsTo(() => Account, 'source_account_id')
     sourceAccount!: Account;

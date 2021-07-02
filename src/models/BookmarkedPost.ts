@@ -11,13 +11,13 @@ class BookmarkedPost extends Model {
     @Column({
         primaryKey: true
     })
-    accountId!: Number;
+    accountId!: number;
 
     @ForeignKey(() => Post)
     @Column({
         primaryKey: true
     })
-    postId!: Number;
+    postId!: number;
 
     @Column({defaultValue: new Date()})
     bookmarkedDate?: Date;

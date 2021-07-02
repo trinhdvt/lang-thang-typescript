@@ -37,19 +37,19 @@ class Post extends Model {
         primaryKey: true,
         autoIncrement: true
     })
-    id!: Number;
+    id!: number;
 
     @Column
-    title!: String;
+    title!: string;
 
     @Column
-    content!: String;
+    content!: string;
 
     @Column
-    slug?: String;
+    slug?: string;
 
     @Column
-    postThumbnail?: String;
+    postThumbnail?: string;
 
     @Column({defaultValue: false})
     status!: Boolean;
@@ -62,7 +62,7 @@ class Post extends Model {
 
     @ForeignKey(() => Account)
     @Column
-    accountId?: Number;
+    accountId?: number;
 
     @BelongsTo(() => Account)
     author?: Account;

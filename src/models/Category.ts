@@ -10,10 +10,10 @@ class Category extends Model {
         primaryKey: true,
         autoIncrement: true
     })
-    id!: Number;
+    id!: number;
 
     @Column
-    name!: String;
+    name!: string;
 
     @BelongsToMany(() => Post, () => PostCategory)
     postCategory?: Post[];
@@ -28,13 +28,13 @@ class PostCategory extends Model {
     @Column({
         primaryKey: true
     })
-    postId!: Number;
+    postId!: number;
 
     @ForeignKey(() => Category)
     @Column({
         primaryKey: true
     })
-    categoryId!: Number;
+    categoryId!: number;
 }
 
 export {Category, PostCategory};

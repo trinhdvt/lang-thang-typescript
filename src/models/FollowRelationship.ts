@@ -10,13 +10,13 @@ class Follow extends Model {
     @Column({
         primaryKey: true
     })
-    accountId!: Number;
+    accountId!: number;
 
     @ForeignKey(() => Account)
     @Column({
         primaryKey: true
     })
-    followingAccountId!: Number;
+    followingAccountId!: number;
 
     @Column
     followingDate?: Date;

@@ -11,24 +11,24 @@ class Comment extends Model {
         primaryKey: true,
         autoIncrement: true
     })
-    id!: Number;
+    id!: number;
 
     @ForeignKey(() => Post)
     @Column
-    postId!: Number;
+    postId!: number;
 
     @BelongsTo(() => Post)
     post!: Post;
 
     @ForeignKey(() => Account)
     @Column
-    accountId!: Number;
+    accountId!: number;
 
     @BelongsTo(() => Account)
     account!: Account;
 
     @Column
-    content!: String;
+    content!: string;
 
     @Column
     commentDate!: Date
@@ -46,13 +46,13 @@ class CommentLike extends Model {
     @Column({
         primaryKey: true,
     })
-    commentId!: Number;
+    commentId!: number;
 
     @ForeignKey(() => Account)
     @Column({
         primaryKey: true,
     })
-    accountId!: Number;
+    accountId!: number;
 
 }
 

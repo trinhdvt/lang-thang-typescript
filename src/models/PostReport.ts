@@ -16,18 +16,18 @@ class PostReport extends Model {
         primaryKey: true,
         autoIncrement: true
     })
-    id!: Number;
+    id!: number;
 
     @ForeignKey(() => Account)
     @Column
-    accountId!: Number;
+    accountId!: number;
 
     @BelongsTo(() => Account)
     account!: Account;
 
     @ForeignKey(() => Post)
     @Column
-    postId!: Number;
+    postId!: number;
 
     @BelongsTo(() => Post)
     post!: Post;
@@ -36,7 +36,7 @@ class PostReport extends Model {
     reportedDate?: Date;
 
     @Column
-    content?: String;
+    content?: string;
 
     @Column({
         field: "is_solved",
@@ -45,7 +45,7 @@ class PostReport extends Model {
     solved?: Boolean;
 
     @Column
-    decision?: String;
+    decision?: string;
 }
 
 export default PostReport;

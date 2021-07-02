@@ -26,40 +26,40 @@ class Account extends Model {
         primaryKey: true,
         autoIncrement: true
     })
-    id!: Number;
+    id!: number;
 
     @Column
-    email!: String;
+    email!: string;
 
     @Column
-    password!: String;
+    password!: string;
 
     @Column
-    name!: String;
+    name!: string;
 
     @Column({
         type: DataType.ENUM("ROLE_USER", "ROLE_ADMIN"),
         defaultValue: "ROLE_USER"
     })
-    role!: String;
+    role!: string;
 
     @Column({defaultValue: false})
     enabled?: Boolean;
 
     @Column
-    registerToken?: String;
+    registerToken?: string;
 
     @Column
-    avatarLink?: String;
+    avatarLink?: string;
 
     @Column
-    about?: String;
+    about?: string;
 
     @Column
-    fbLink?: String;
+    fbLink?: string;
 
     @Column
-    instagramLink?: String;
+    instagramLink?: string;
 
     @HasMany(() => Post)
     posts?: Post[];
