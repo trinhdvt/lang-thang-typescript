@@ -7,6 +7,7 @@ import LoginDto from "../dto/LoginDto";
 import classValidation from "../middlewares/ClassValidation";
 import ms from "ms";
 import HttpException from "../exception/HttpException";
+import RegisterDto from "../dto/RegisterDto";
 
 
 export default class AuthController implements IController {
@@ -24,6 +25,7 @@ export default class AuthController implements IController {
         this.router.post(`${this.path}/login`, classValidation(LoginDto), this.login);
         this.router.post(`${this.path}/google`, this.loginWithGoogle);
         this.router.post(`${this.path}/refreshToken`, this.refreshAccessToken)
+        this.router.post(`${this.path}/registration`, classValidation(RegisterDto), this.register);
     }
 
     private login = async (req: Request, res: Response, next: NextFunction) => {
@@ -87,4 +89,18 @@ export default class AuthController implements IController {
         }
 
     };
+
+    private register = async (req: Request, res: Response, next: NextFunction) => {
+        const userData: RegisterDto = req.body;
+        if (userData.password !== userData.matchedPassword) {
+            return next(new HttpException(StatusCodes.BAD_REQUEST, "Password doesn't match"));
+        }
+        try {
+            await this.authService.register(userData);
+            return res.status(StatusCodes.ACCEPTED).send();
+        } catch (e) {
+            return next(e);
+        }
+    }
+
 }

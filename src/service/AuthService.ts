@@ -9,6 +9,9 @@ import {StatusCodes} from "http-status-codes";
 import Account from "../models/Account";
 import MailSender from "../utils/MailSender";
 import StringUtils from "../utils/StringUtils";
+import RegisterDto from "../dto/RegisterDto";
+import {randomUUID} from "crypto";
+import bcrypt from "bcrypt";
 
 @Service()
 export default class AuthService {
@@ -29,7 +32,7 @@ export default class AuthService {
             throw new InvalidUsernameOrPassword();
         }
 
-        const isPasswordCorrect = await this.jwtService.checkPassword(password, acc.password);
+        const isPasswordCorrect = await this.checkPassword(password, acc.password);
         if (!isPasswordCorrect) {
             throw new InvalidUsernameOrPassword();
         }
@@ -57,10 +60,13 @@ export default class AuthService {
 
                 let existingAcc = await this.accountRepository.findByEmail(email as string);
                 if (existingAcc) {
+
                     // account is already existed
                     if (!existingAcc.enabled) {
+
                         // but not activated yet
                         existingAcc.enabled = true;
+
                         // then activated first
                         await existingAcc.save();
                     }
@@ -68,7 +74,7 @@ export default class AuthService {
                 } else {
                     //create and save new account
                     const rawPassword = StringUtils.randomString(10);
-                    const encryptedPassword = await this.jwtService.encryptPassword(rawPassword);
+                    const encryptedPassword = await this.encryptPassword(rawPassword);
                     existingAcc = await Account.create({
                         email: email,
                         name: name,
@@ -104,6 +110,56 @@ export default class AuthService {
         }
 
         return await this.jwtService.createToken(acc);
+    }
+
+    public register = async (userData: RegisterDto) => {
+        const {email, name, password} = userData;
+
+        const acc = await this.accountRepository.findByEmail(email);
+        if (!acc) {
+            // email not existing
+
+            // create a random register token
+            const registerToken = randomUUID({disableEntropyCache: true});
+
+            // encrypt password
+            const encryptedPassword = await this.encryptPassword(password);
+
+            // create and save to db
+            await Account.create({
+                email: email,
+                name: name,
+                password: encryptedPassword,
+                role: "ROLE_USER",
+                enabled: false,
+                registerToken: registerToken
+            });
+
+            // send activation link
+            const activationLink = `${process.env.DOMAIN}/auth/active/${registerToken}`;
+            this.mailSender.sendActivationLink(email, activationLink);
+        } else {
+            if (acc.enabled) {
+                // email is already in-use
+                throw new HttpException(StatusCodes.CONFLICT, "Email is already existed");
+            } else {
+                // re-send activation link
+                const registerToken = acc.registerToken;
+                const activationLink = `${process.env.DOMAIN}/auth/active/${registerToken}`;
+                this.mailSender.sendActivationLink(email, activationLink);
+
+                // send back an error as warning
+                throw new HttpException(StatusCodes.LOCKED, "Please check your email to verify your account!")
+            }
+        }
+    };
+
+    public encryptPassword = async (password: string) => {
+        return await bcrypt.hash(password, 10);
+    }
+
+    public checkPassword = async (rawPassword: string, encryptedPassword: string) => {
+        return await bcrypt.compare(rawPassword, encryptedPassword);
     }
 }
 
