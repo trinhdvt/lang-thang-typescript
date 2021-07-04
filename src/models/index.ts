@@ -7,6 +7,7 @@ import {Comment, CommentLike} from "./Comment";
 import Follow from "./FollowRelationship";
 import Notification from "./Notification";
 import PostReport from "./PostReport";
+import RefreshToken from "./RefreshToken";
 
 require('dotenv').config();
 
@@ -26,14 +27,16 @@ const sequelize = new Sequelize({
     define: {
         underscored: true,
         timestamps: false
-    }
+    },
+    logging: false
 });
 
 sequelize.addModels(
     [Account, Post, BookmarkedPost,
         Category, PostCategory,
         Comment, CommentLike,
-        Follow, Notification, PostReport]
+        Follow, Notification, PostReport,
+        RefreshToken]
 );
 
 export default sequelize;
