@@ -2,6 +2,9 @@ import express from "express";
 import sequelize from "./models";
 import IController from "./interfaces/IController";
 import exceptionHandler from "./middlewares/ExceptionHandler";
+import cookieParser from "cookie-parser";
+import bodyParser from "body-parser";
+import multer from "multer";
 
 require('dotenv').config();
 
@@ -32,7 +35,10 @@ class App {
     }
 
     private initMiddlewares() {
-        this.app.use(express.urlencoded({extended: true}));
+        this.app.use(bodyParser.json());
+        this.app.use(bodyParser.urlencoded({extended: true}));
+        this.app.use(multer().none());
+        this.app.use(cookieParser());
 
     }
 
