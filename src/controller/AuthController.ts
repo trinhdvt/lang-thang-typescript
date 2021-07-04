@@ -23,6 +23,7 @@ export default class AuthController implements IController {
     private initRoutes() {
         this.router.post(`${this.path}/login`, classValidation(LoginDto), this.login);
         this.router.post(`${this.path}/google`, this.loginWithGoogle);
+        this.router.post(`${this.path}/refreshToken`, this.refreshAccessToken)
     }
 
     private login = async (req: Request, res: Response, next: NextFunction) => {
@@ -61,4 +62,29 @@ export default class AuthController implements IController {
             return next(e)
         }
     }
+
+    private refreshAccessToken = async (req: Request, res: Response, next: NextFunction) => {
+        const refreshToken = req.cookies['refresh-token'] as string;
+        const accessToken = req.get('Authorization');
+
+        if (!accessToken || !accessToken?.startsWith("Bearer")) {
+            return next(new HttpException(StatusCodes.FORBIDDEN, "Invalid Authorization header"));
+        }
+        if (!refreshToken) {
+            return next(new HttpException(StatusCodes.BAD_REQUEST, "Empty refresh-token cookie"));
+        }
+
+        try {
+            const newToken = await this.authService.reCreateToken(accessToken.substring(7), refreshToken);
+            return res.status(StatusCodes.OK)
+                .cookie("refresh-token", newToken.refreshToken, {
+                    httpOnly: true,
+                    maxAge: ms('0.5 y')
+                }).json({token: newToken.accessToken});
+
+        } catch (e) {
+            return next(e);
+        }
+
+    };
 }

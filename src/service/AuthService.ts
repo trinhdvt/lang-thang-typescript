@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import {Container, Service} from "typedi";
 import AccountRepository from "../repository/AccountRepository";
 import InvalidUsernameOrPassword from "../exception/InvalidUsernameOrPassword";
-import SecurityService from "./SecurityService";
+import JwtService from "./JwtService";
 import {OAuth2Client} from "google-auth-library";
 import HttpException from "../exception/HttpException";
 import {StatusCodes} from "http-status-codes";
@@ -14,12 +14,12 @@ import StringUtils from "../utils/StringUtils";
 export default class AuthService {
 
     private accountRepository: AccountRepository;
-    private securityService: SecurityService;
+    private jwtService: JwtService;
     private mailSender: MailSender;
 
     constructor() {
         this.accountRepository = Container.get(AccountRepository);
-        this.securityService = Container.get(SecurityService);
+        this.jwtService = Container.get(JwtService);
         this.mailSender = Container.get(MailSender);
     }
 
@@ -29,12 +29,12 @@ export default class AuthService {
             throw new InvalidUsernameOrPassword();
         }
 
-        const isPasswordCorrect = await this.securityService.checkPassword(password, acc.password);
+        const isPasswordCorrect = await this.jwtService.checkPassword(password, acc.password);
         if (!isPasswordCorrect) {
             throw new InvalidUsernameOrPassword();
         }
 
-        const {accessToken, refreshToken} = await this.securityService.createToken(acc);
+        const {accessToken, refreshToken} = await this.jwtService.createToken(acc);
         return {accessToken, refreshToken};
     }
 
@@ -68,7 +68,7 @@ export default class AuthService {
                 } else {
                     //create and save new account
                     const rawPassword = StringUtils.randomString(10);
-                    const encryptedPassword = await this.securityService.encryptPassword(rawPassword);
+                    const encryptedPassword = await this.jwtService.encryptPassword(rawPassword);
                     existingAcc = await Account.create({
                         email: email,
                         name: name,
@@ -81,7 +81,7 @@ export default class AuthService {
                     this.mailSender.sendCreatedAccountEmail(existingAcc.email, rawPassword);
                 }
 
-                const {accessToken, refreshToken} = await this.securityService.createToken(existingAcc);
+                const {accessToken, refreshToken} = await this.jwtService.createToken(existingAcc);
                 return {accessToken, refreshToken};
             }
         } catch (e) {
@@ -91,5 +91,19 @@ export default class AuthService {
 
     }
 
+    public reCreateToken = async (accessToken: string, refreshToken: string) => {
+        let isValid = await this.jwtService.isValidToRefreshToken(accessToken, refreshToken);
+        if (!isValid) {
+            throw new HttpException(StatusCodes.UNAUTHORIZED, "Not eligible to refresh token");
+        }
+
+        const {email} = this.jwtService.getPayLoad(accessToken);
+        const acc = await this.accountRepository.findByEmail(email);
+        if (!acc) {
+            throw new HttpException(StatusCodes.UNAUTHORIZED, "Account not found");
+        }
+
+        return await this.jwtService.createToken(acc);
+    }
 }
 

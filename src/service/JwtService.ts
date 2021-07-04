@@ -1,15 +1,17 @@
 import {Service} from "typedi";
-import jwt from "jsonwebtoken";
+import jwt, {JwtPayload} from "jsonwebtoken";
 import RefreshToken from "../models/RefreshToken";
 import Account from "../models/Account";
+import HttpException from "../exception/HttpException";
+import {StatusCodes} from "http-status-codes";
+import bcrypt from "bcrypt";
 
 require('dotenv').config();
 
 @Service()
-export default class SecurityService {
+export default class JwtService {
     private readonly SECRET_KEY: string;
     private readonly EXPIRE_TIME: string;
-    private bcrypt = require('bcrypt');
 
     constructor() {
         this.SECRET_KEY = process.env.TOKEN_SECRET as string;
@@ -60,11 +62,46 @@ export default class SecurityService {
         return rfToken;
     }
 
+    public isValidToRefreshToken = async (accessToken: string, refreshToken: string) => {
+        const {email} = this.getPayLoad(accessToken);
+        const rfToken = await RefreshToken.findByPk(email);
+
+        return (rfToken != null
+            && rfToken.refreshToken === refreshToken
+            && rfToken.accessToken === accessToken);
+    }
+
+    public isValidAccessToken = (accessToken: string) => {
+        try {
+            jwt.verify(accessToken, this.SECRET_KEY);
+            return true;
+        } catch (err) {
+            // invalid token
+            throw new HttpException(StatusCodes.FORBIDDEN, "Invalid token");
+        }
+    };
+
+    public getPayLoad = (accessToken: string) => {
+        try {
+            const decoded = jwt.verify(accessToken, this.SECRET_KEY, {ignoreExpiration: true}) as JwtPayload;
+            let {id, email, role} = decoded;
+
+            return {
+                id: Number(id),
+                email: email as string,
+                role: role as string
+            }
+        } catch (e) {
+            // invalid token
+            throw new HttpException(StatusCodes.FORBIDDEN, "Invalid token");
+        }
+    }
+
     public encryptPassword = async (password: string) => {
-        return await this.bcrypt.hash(password, 10);
+        return await bcrypt.hash(password, 10);
     }
 
     public checkPassword = async (rawPassword: string, encryptedPassword: string) => {
-        return await this.bcrypt.compare(rawPassword, encryptedPassword);
+        return await bcrypt.compare(rawPassword, encryptedPassword);
     }
 }
