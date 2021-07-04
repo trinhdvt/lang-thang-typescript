@@ -25,6 +25,14 @@ export default class MailSender {
         this.sendEmail(email, subject, text);
     };
 
+    public sendActivationLink = (email: string, activationLink: string) => {
+        const subject = "Registration Confirmation";
+        const text = "Please follow this link to verify your account!\r\n" +
+            activationLink;
+
+        this.sendEmail(email, subject, text);
+    };
+
     private sendEmail = (to: string, subject: string, text: string) => {
         let emailOptions = {
             from: "Lang Thang Project",
