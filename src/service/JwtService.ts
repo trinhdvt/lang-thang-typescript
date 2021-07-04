@@ -4,7 +4,6 @@ import RefreshToken from "../models/RefreshToken";
 import Account from "../models/Account";
 import HttpException from "../exception/HttpException";
 import {StatusCodes} from "http-status-codes";
-import bcrypt from "bcrypt";
 
 require('dotenv').config();
 
@@ -97,11 +96,4 @@ export default class JwtService {
         }
     }
 
-    public encryptPassword = async (password: string) => {
-        return await bcrypt.hash(password, 10);
-    }
-
-    public checkPassword = async (rawPassword: string, encryptedPassword: string) => {
-        return await bcrypt.compare(rawPassword, encryptedPassword);
-    }
 }
