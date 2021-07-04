@@ -41,11 +41,20 @@ export default class SecurityService {
         const rfToken = Buffer.from(randomString).toString("base64");
 
         // save token to db
-        await RefreshToken.create({
-            email: email,
-            accessToken: accessToken,
-            refreshToken: rfToken
-        });
+        const rs = await RefreshToken.findByPk(email);
+        if (rs) {
+            // update if already exist
+            rs.accessToken = accessToken;
+            rs.refreshToken = rfToken;
+            await rs.save();
+        } else {
+            // create a new one
+            await RefreshToken.create({
+                email: email,
+                accessToken: accessToken,
+                refreshToken: rfToken
+            });
+        }
         //
 
         return rfToken;
