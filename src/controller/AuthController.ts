@@ -1,4 +1,3 @@
-import 'reflect-metadata';
 import IController from "../interfaces/IController";
 import express, {NextFunction, Request, Response, Router} from "express";
 import {StatusCodes} from "http-status-codes";
@@ -7,6 +6,7 @@ import {Container} from "typedi";
 import LoginDto from "../dto/LoginDto";
 import classValidation from "../middlewares/ClassValidation";
 import ms from "ms";
+import HttpException from "../exception/HttpException";
 
 
 export default class AuthController implements IController {
@@ -22,6 +22,7 @@ export default class AuthController implements IController {
 
     private initRoutes() {
         this.router.post(`${this.path}/login`, classValidation(LoginDto), this.login);
+        this.router.post(`${this.path}/google`, this.loginWithGoogle);
     }
 
     private login = async (req: Request, res: Response, next: NextFunction) => {
@@ -41,5 +42,23 @@ export default class AuthController implements IController {
         }
     }
 
-
+    private loginWithGoogle = async (req: Request, res: Response, next: NextFunction) => {
+        const googleToken = req.body['google_token'];
+        if (!googleToken) {
+            return next(new HttpException(StatusCodes.BAD_REQUEST, 'Google token is required'));
+        }
+        try {
+            const token = await this.authService.loginWithGoogle(googleToken);
+            if (token) {
+                const {accessToken, refreshToken} = token;
+                return res.status(StatusCodes.OK)
+                    .cookie("refresh-token", refreshToken, {
+                        httpOnly: true,
+                        maxAge: ms('0.5 y')
+                    }).json({token: accessToken});
+            }
+        } catch (e) {
+            return next(e)
+        }
+    }
 }
