@@ -47,10 +47,14 @@ class App {
     }
 
     private initRoutes(controllers: IController[]) {
+        const routes: string[] = [];
         controllers.forEach(api => {
-            console.log(api.path);
-            this.app.use("/", api.router);
+            routes.push(api.path);
+
+            this.app.use(api.path, api.router);
         });
+
+        console.log(`${routes.length} Routes added: [${routes.join(', ')}]`);
     }
 
     public getServer(): express.Application {

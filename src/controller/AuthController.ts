@@ -23,14 +23,14 @@ export default class AuthController implements IController {
     }
 
     private initRoutes() {
-        this.router.post(`${this.path}/login`, classValidation(LoginDto), this.login);
-        this.router.post(`${this.path}/google`, this.loginWithGoogle);
-        this.router.post(`${this.path}/refreshToken`, this.refreshAccessToken)
-        this.router.post(`${this.path}/registration`, classValidation(RegisterDto), this.register);
-        this.router.post(`${this.path}/registrationConfirm`, this.registrationConfirm);
-        this.router.post(`${this.path}/resetPassword`, this.requestResetPwd);
-        this.router.get(`${this.path}/changePassword`, this.validatePwdResetToken);
-        this.router.put(`${this.path}/savePassword`, classValidation(RegisterDto, true), this.resetPassword);
+        this.router.post(`/login`, classValidation(LoginDto), this.login);
+        this.router.post(`/google`, this.loginWithGoogle);
+        this.router.post(`/refreshToken`, this.refreshAccessToken)
+        this.router.post(`/registration`, classValidation(RegisterDto), this.register);
+        this.router.post(`/registrationConfirm`, this.registrationConfirm);
+        this.router.post(`/resetPassword`, this.requestResetPwd);
+        this.router.get(`/changePassword`, this.validatePwdResetToken);
+        this.router.put(`/savePassword`, classValidation(RegisterDto, true), this.resetPassword);
     }
 
     private login = async (req: Request, res: Response, next: NextFunction) => {
