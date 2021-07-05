@@ -53,4 +53,12 @@ export default class MailSender {
             else console.log("Ready to use");
         });
     }
+
+    sendResetPwdLink(email: string, resetPwdLink: string) {
+        const subject = "Registration Confirmation";
+        const text = "Please follow this link to verify your account!\r\n" +
+            resetPwdLink;
+
+        this.sendEmail(email, subject, text);
+    }
 }
