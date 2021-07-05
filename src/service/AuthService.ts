@@ -12,6 +12,7 @@ import StringUtils from "../utils/StringUtils";
 import RegisterDto from "../dto/RegisterDto";
 import {randomUUID} from "crypto";
 import bcrypt from "bcrypt";
+import PasswordResetToken from "../models/PasswordResetToken";
 
 @Service()
 export default class AuthService {
@@ -171,6 +172,43 @@ export default class AuthService {
         account.enabled = true;
         account.registerToken = null;
         await account.save();
+    };
+
+    public createPwdResetToken = async (email: string) => {
+        const acc = await this.accountRepository.findByEmail(email);
+        if (!acc) {
+            throw new HttpException(StatusCodes.NOT_FOUND, "Email not found");
+        }
+        if (!acc.enabled) {
+            throw new HttpException(StatusCodes.LOCKED, "Email is not verified");
+        }
+
+        let pwdResetToken = await PasswordResetToken.findOne({
+            where: {
+                accountId: acc.id
+            }
+        });
+        //
+        const token = StringUtils.randomUUID();
+        const expiredDate = new Date(Date.now() + 60000 * 30);
+
+        //
+        if (!pwdResetToken) {
+            //
+            pwdResetToken = PasswordResetToken.build({
+                token: token,
+                expireDate: expiredDate,
+                accountId: acc.id
+            });
+        } else {
+            //
+            pwdResetToken.expireDate = expiredDate;
+        }
+        pwdResetToken = await pwdResetToken.save();
+
+        //
+        let restPwdLink = `http://localhost:8080/auth/resetPassword/${pwdResetToken.token}`;
+        this.mailSender.sendResetPwdLink(acc.email, restPwdLink);
     };
 }
 

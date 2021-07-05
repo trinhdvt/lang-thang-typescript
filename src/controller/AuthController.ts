@@ -8,6 +8,7 @@ import classValidation from "../middlewares/ClassValidation";
 import ms from "ms";
 import HttpException from "../exception/HttpException";
 import RegisterDto from "../dto/RegisterDto";
+import StringUtils from "../utils/StringUtils";
 
 
 export default class AuthController implements IController {
@@ -27,6 +28,7 @@ export default class AuthController implements IController {
         this.router.post(`${this.path}/refreshToken`, this.refreshAccessToken)
         this.router.post(`${this.path}/registration`, classValidation(RegisterDto), this.register);
         this.router.post(`${this.path}/registrationConfirm`, this.registrationConfirm);
+        this.router.post(`${this.path}/resetPassword`, this.requestResetPwd);
     }
 
     private login = async (req: Request, res: Response, next: NextFunction) => {
@@ -118,4 +120,17 @@ export default class AuthController implements IController {
         }
     }
 
+    private requestResetPwd = async (req: Request, res: Response, next: NextFunction) => {
+        const {email} = req.body;
+        if (!email || !StringUtils.isEmail(email)) {
+            return next(new HttpException(StatusCodes.BAD_REQUEST, "Invalid email"));
+        }
+
+        try {
+            await this.authService.createPwdResetToken(email);
+            return res.status(StatusCodes.ACCEPTED).send();
+        } catch (e) {
+            return next(e);
+        }
+    }
 }
