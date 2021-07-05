@@ -8,6 +8,7 @@ import Follow from "./FollowRelationship";
 import Notification from "./Notification";
 import PostReport from "./PostReport";
 import RefreshToken from "./RefreshToken";
+import PasswordResetToken from "./PasswordResetToken";
 
 require('dotenv').config();
 
@@ -36,7 +37,7 @@ sequelize.addModels(
         Category, PostCategory,
         Comment, CommentLike,
         Follow, Notification, PostReport,
-        RefreshToken]
+        RefreshToken, PasswordResetToken]
 );
 
 export default sequelize;

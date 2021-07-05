@@ -1,9 +1,10 @@
-import {BelongsToMany, Column, DataType, HasMany, Model, Scopes, Table} from "sequelize-typescript";
+import {BelongsToMany, Column, DataType, HasMany, HasOne, Model, Scopes, Table} from "sequelize-typescript";
 import Post from "./Post";
 import BookmarkedPost from "./BookmarkedPost";
 import {Comment, CommentLike} from "./Comment";
 import Follow from "./FollowRelationship";
 import Notification from "./Notification";
+import PasswordResetToken from "./PasswordResetToken";
 
 @Scopes(() => ({
     "active": {
@@ -78,6 +79,9 @@ class Account extends Model {
 
     @HasMany(() => Notification)
     notifications?: Notification[];
+
+    @HasOne(() => PasswordResetToken)
+    pwdResetToken!: PasswordResetToken;
 }
 
 export default Account;
