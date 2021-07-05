@@ -46,20 +46,20 @@ class Account extends Model {
     @Column({defaultValue: false})
     enabled!: boolean;
 
-    @Column
-    registerToken?: string;
+    @Column(DataType.STRING)
+    registerToken!: string | null;
 
-    @Column
-    avatarLink?: string;
+    @Column(DataType.STRING)
+    avatarLink!: string | null;
 
-    @Column
-    about?: string;
+    @Column(DataType.STRING)
+    about!: string | null;
 
-    @Column
-    fbLink?: string;
+    @Column(DataType.STRING)
+    fbLink!: string | null;
 
-    @Column
-    instagramLink?: string;
+    @Column(DataType.STRING)
+    instagramLink!: string | null;
 
     @HasMany(() => Post)
     posts?: Post[];
