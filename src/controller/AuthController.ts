@@ -26,6 +26,7 @@ export default class AuthController implements IController {
         this.router.post(`${this.path}/google`, this.loginWithGoogle);
         this.router.post(`${this.path}/refreshToken`, this.refreshAccessToken)
         this.router.post(`${this.path}/registration`, classValidation(RegisterDto), this.register);
+        this.router.post(`${this.path}/registrationConfirm`, this.registrationConfirm);
     }
 
     private login = async (req: Request, res: Response, next: NextFunction) => {
@@ -97,6 +98,20 @@ export default class AuthController implements IController {
         }
         try {
             await this.authService.register(userData);
+            return res.status(StatusCodes.ACCEPTED).send();
+        } catch (e) {
+            return next(e);
+        }
+    }
+
+    private registrationConfirm = async (req: Request, res: Response, next: NextFunction) => {
+        const {token} = req.body;
+        if (!token) {
+            return next(new HttpException(StatusCodes.BAD_REQUEST, "Missing token"));
+        }
+
+        try {
+            await this.authService.activateAccount(token);
             return res.status(StatusCodes.ACCEPTED).send();
         } catch (e) {
             return next(e);

@@ -161,5 +161,16 @@ export default class AuthService {
     public checkPassword = async (rawPassword: string, encryptedPassword: string) => {
         return await bcrypt.compare(rawPassword, encryptedPassword);
     }
+
+    public activateAccount = async (registerToken: string) => {
+        const account = await this.accountRepository.findByRegisterToken(registerToken);
+        if (!account) {
+            throw new HttpException(StatusCodes.UNAUTHORIZED, "Invalid register token");
+        }
+        console.log(account.toJSON());
+        account.enabled = true;
+        account.registerToken = null;
+        await account.save();
+    };
 }
 

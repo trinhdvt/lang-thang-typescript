@@ -18,4 +18,13 @@ export default class AccountRepository {
             }
         });
     }
+
+    public async findByRegisterToken(registerToken: string) {
+        return await Account.findOne({
+            where: {
+                registerToken: registerToken,
+                enabled: false
+            }
+        });
+    }
 }
