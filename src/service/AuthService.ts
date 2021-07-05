@@ -210,5 +210,42 @@ export default class AuthService {
         let restPwdLink = `http://localhost:8080/auth/resetPassword/${pwdResetToken.token}`;
         this.mailSender.sendResetPwdLink(acc.email, restPwdLink);
     };
+
+    public validatePwdResetToken = async (token: string) => {
+        const rfToken = await PasswordResetToken.findOne({
+            where: {
+                token: token
+            }
+        });
+
+        if (!rfToken) {
+            throw new HttpException(StatusCodes.UNAUTHORIZED, "Invalid password reset token");
+        }
+
+        if (rfToken.expireDate.getTime() <= Date.now()) {
+            throw new HttpException(StatusCodes.GONE, "Token has expired");
+        }
+
+    };
+
+    public resetPassword = async (token: string, password: string) => {
+
+        await this.validatePwdResetToken(token);
+
+        const rfToken = await PasswordResetToken.findOne({
+            where: {
+                token: token
+            },
+            include: [Account]
+        });
+        if (rfToken) {
+            const account = rfToken.account;
+            account.password = await this.encryptPassword(password);
+            await account.save();
+            await rfToken.destroy();
+        } else {
+            throw new HttpException(StatusCodes.INTERNAL_SERVER_ERROR, "Rftoken null");
+        }
+    };
 }
 

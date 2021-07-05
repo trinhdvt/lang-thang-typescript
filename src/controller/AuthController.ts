@@ -29,6 +29,8 @@ export default class AuthController implements IController {
         this.router.post(`${this.path}/registration`, classValidation(RegisterDto), this.register);
         this.router.post(`${this.path}/registrationConfirm`, this.registrationConfirm);
         this.router.post(`${this.path}/resetPassword`, this.requestResetPwd);
+        this.router.get(`${this.path}/changePassword`, this.validatePwdResetToken);
+        this.router.put(`${this.path}/savePassword`, classValidation(RegisterDto, true), this.resetPassword);
     }
 
     private login = async (req: Request, res: Response, next: NextFunction) => {
@@ -128,6 +130,33 @@ export default class AuthController implements IController {
 
         try {
             await this.authService.createPwdResetToken(email);
+            return res.status(StatusCodes.ACCEPTED).send();
+        } catch (e) {
+            return next(e);
+        }
+    }
+
+    private validatePwdResetToken = async (req: Request, res: Response, next: NextFunction) => {
+        const token = req.query['token']?.toString();
+        if (!token) {
+            return next(new HttpException(StatusCodes.BAD_REQUEST, "Missing token"));
+        }
+        try {
+            await this.authService.validatePwdResetToken(token);
+            return res.status(StatusCodes.ACCEPTED).send();
+        } catch (e) {
+            return next(e);
+        }
+    }
+
+    private resetPassword = async (req: Request, res: Response, next: NextFunction) => {
+        const {token, password, matchedPassword} = req.body;
+        if (!token || password != matchedPassword) {
+            return next(new HttpException(StatusCodes.BAD_REQUEST, "Password doesn't matched or missing token"));
+        }
+
+        try {
+            await this.authService.resetPassword(token, password);
             return res.status(StatusCodes.ACCEPTED).send();
         } catch (e) {
             return next(e);
