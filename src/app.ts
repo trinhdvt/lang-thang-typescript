@@ -1,25 +1,15 @@
 import express from "express";
 import sequelize from "./models";
-import IController from "./interfaces/IController";
-import exceptionHandler from "./middlewares/ExceptionHandler";
 import cookieParser from "cookie-parser";
 import bodyParser from "body-parser";
 import multer from "multer";
-import httpContext from "express-http-context";
-import jwtFilterMiddleware from "./middlewares/JwtFilterMiddleware";
 
-require('dotenv').config();
-
-class App {
+export default class App {
 
     private readonly app: express.Application;
 
-    constructor(controllers: IController[]) {
+    constructor() {
         this.app = express();
-
-        this.initMiddlewares();
-        this.initRoutes(controllers);
-        this.initExceptionMiddlewares();
     }
 
     public listen() {
@@ -36,28 +26,11 @@ class App {
 
     }
 
-    private initMiddlewares() {
+    public boostrap() {
         this.app.use(bodyParser.json());
         this.app.use(bodyParser.urlencoded({extended: true}));
         this.app.use(multer().none());
         this.app.use(cookieParser());
-        this.app.use(httpContext.middleware);
-        this.app.use(jwtFilterMiddleware);
-    }
-
-    private initExceptionMiddlewares() {
-        this.app.use(exceptionHandler);
-    }
-
-    private initRoutes(controllers: IController[]) {
-        const routes: string[] = [];
-        controllers.forEach(api => {
-            routes.push(api.path);
-
-            this.app.use(api.path, api.router);
-        });
-
-        console.log(`${routes.length} Routes added: [${routes.join(', ')}]`);
     }
 
     public getServer(): express.Application {
@@ -68,5 +41,3 @@ class App {
         await sequelize.sync();
     }
 }
-
-export default App;

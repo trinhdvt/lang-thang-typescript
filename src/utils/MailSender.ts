@@ -1,8 +1,6 @@
 import {Service} from "typedi";
 import nodemailer from "nodemailer";
 
-require('dotenv').config();
-
 @Service()
 export default class MailSender {
     readonly mailSender = nodemailer.createTransport({
@@ -40,10 +38,13 @@ export default class MailSender {
             subject: subject,
             text: text
         }
-        this.mailSender.sendMail(emailOptions, ((err, info) => {
-            if (err)
-                console.error(err);
-        }));
+
+        if (process.env.NODE_ENV == "production") {
+            this.mailSender.sendMail(emailOptions, ((err, info) => {
+                if (err)
+                    console.error(err);
+            }));
+        }
     };
 
     public verify = () => {

@@ -2,10 +2,7 @@ import {Service} from "typedi";
 import jwt, {JwtPayload, TokenExpiredError} from "jsonwebtoken";
 import RefreshToken from "../models/RefreshToken";
 import Account from "../models/Account";
-import HttpException from "../exception/HttpException";
-import {StatusCodes} from "http-status-codes";
-
-require('dotenv').config();
+import {ForbiddenError} from "routing-controllers";
 
 @Service()
 export default class JwtService {
@@ -32,7 +29,6 @@ export default class JwtService {
         // const duration = ms(this.EXPIRE_TIME);
 
         const refreshToken = await this.createRefreshToken(accessToken, account.email);
-
         return {accessToken, refreshToken};
     }
 
@@ -40,7 +36,6 @@ export default class JwtService {
         const randomString = Math.random().toString(36).substring(2);
 
         const rfToken = Buffer.from(randomString).toString("base64");
-
         // save token to db
         const rs = await RefreshToken.findByPk(email);
         if (rs) {
@@ -79,7 +74,7 @@ export default class JwtService {
                 return false;
             }
             // invalid token
-            throw new HttpException(StatusCodes.FORBIDDEN, "Invalid token");
+            throw new ForbiddenError("Invalid token");
         }
     };
 
@@ -95,7 +90,7 @@ export default class JwtService {
             }
         } catch (e) {
             // invalid token
-            throw new HttpException(StatusCodes.FORBIDDEN, "Invalid token");
+            throw new ForbiddenError("Invalid token");
         }
     }
 
