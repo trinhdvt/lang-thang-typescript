@@ -5,6 +5,7 @@ import {Comment, CommentLike} from "./Comment";
 import Follow from "./FollowRelationship";
 import Notification from "./Notification";
 import PasswordResetToken from "./PasswordResetToken";
+import Role from "./Role";
 
 @Scopes(() => ({
     "active": {
@@ -39,10 +40,10 @@ class Account extends Model {
     name!: string;
 
     @Column({
-        type: DataType.ENUM("ROLE_USER", "ROLE_ADMIN"),
-        defaultValue: "ROLE_USER"
+        type: DataType.ENUM({values: Object.keys(Role)}),
+        defaultValue: Role.ROLE_USER
     })
-    role!: string;
+    role!: Role;
 
     @Column({defaultValue: false})
     enabled!: boolean;

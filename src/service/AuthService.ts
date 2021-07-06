@@ -13,6 +13,7 @@ import RegisterDto from "../dto/RegisterDto";
 import {randomUUID} from "crypto";
 import bcrypt from "bcrypt";
 import PasswordResetToken from "../models/PasswordResetToken";
+import Role from "../models/Role";
 
 @Service()
 export default class AuthService {
@@ -131,7 +132,7 @@ export default class AuthService {
                 email: email,
                 name: name,
                 password: encryptedPassword,
-                role: "ROLE_USER",
+                role: Role.ROLE_USER,
                 enabled: false,
                 registerToken: registerToken
             });
