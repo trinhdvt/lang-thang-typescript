@@ -11,3 +11,16 @@ export default class HttpException extends Error {
     }
 
 }
+
+export class UnauthenticatedException extends HttpException {
+    constructor() {
+        super(403, "Forbidden");
+    }
+}
+
+export class UnauthorizedException extends HttpException {
+    constructor() {
+        super(401, "Unauthorized");
+
+    }
+}
