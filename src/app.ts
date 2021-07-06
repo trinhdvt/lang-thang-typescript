@@ -5,6 +5,8 @@ import exceptionHandler from "./middlewares/ExceptionHandler";
 import cookieParser from "cookie-parser";
 import bodyParser from "body-parser";
 import multer from "multer";
+import httpContext from "express-http-context";
+import jwtFilterMiddleware from "./middlewares/JwtFilterMiddleware";
 
 require('dotenv').config();
 
@@ -39,7 +41,8 @@ class App {
         this.app.use(bodyParser.urlencoded({extended: true}));
         this.app.use(multer().none());
         this.app.use(cookieParser());
-
+        this.app.use(httpContext.middleware);
+        this.app.use(jwtFilterMiddleware);
     }
 
     private initExceptionMiddlewares() {
