@@ -55,8 +55,8 @@ export default class MailSender {
     }
 
     sendResetPwdLink(email: string, resetPwdLink: string) {
-        const subject = "Registration Confirmation";
-        const text = "Please follow this link to verify your account!\r\n" +
+        const subject = "Reset Password";
+        const text = "Please follow this link to reset your password!\r\n" +
             resetPwdLink;
 
         this.sendEmail(email, subject, text);
