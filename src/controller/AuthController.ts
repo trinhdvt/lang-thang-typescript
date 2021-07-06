@@ -1,165 +1,111 @@
-import IController from "../interfaces/IController";
-import express, {NextFunction, Request, Response, Router} from "express";
-import {StatusCodes} from "http-status-codes";
-import AuthService from "../service/AuthService";
-import {Container} from "typedi";
+import {
+    BadRequestError,
+    Body,
+    BodyParam,
+    CookieParam, ForbiddenError, Get,
+    HeaderParam, HttpCode,
+    JsonController,
+    Post, Put, QueryParam,
+    Res
+} from "routing-controllers";
+import {Response} from "express";
 import LoginDto from "../dto/LoginDto";
-import classValidation from "../middlewares/ClassValidation";
+import {Service} from "typedi";
+import AuthService from "../service/AuthService";
+import {StatusCodes} from "http-status-codes";
 import ms from "ms";
-import HttpException from "../exception/HttpException";
 import RegisterDto from "../dto/RegisterDto";
-import StringUtils from "../utils/StringUtils";
+import PasswordDto from "../dto/PasswordDto";
+
+@JsonController("/auth")
+@Service()
+export default class AuthController {
 
 
-export default class AuthController implements IController {
-    path: string = '/auth';
-    router: Router = express.Router();
-    authService: AuthService;
-
-    constructor() {
-        this.authService = Container.get(AuthService);
-
-        this.initRoutes();
+    constructor(private authService: AuthService) {
     }
 
-    private initRoutes() {
-        this.router.post(`/login`, classValidation(LoginDto), this.login);
-        this.router.post(`/google`, this.loginWithGoogle);
-        this.router.post(`/refreshToken`, this.refreshAccessToken)
-        this.router.post(`/registration`, classValidation(RegisterDto), this.register);
-        this.router.post(`/registrationConfirm`, this.registrationConfirm);
-        this.router.post(`/resetPassword`, this.requestResetPwd);
-        this.router.get(`/changePassword`, this.validatePwdResetToken);
-        this.router.put(`/savePassword`, classValidation(RegisterDto, true), this.resetPassword);
+    @Post("/login")
+    async login(@Body() {email, password}: LoginDto,
+                @Res() res: Response) {
+
+        const {accessToken, refreshToken} = await this.authService.login(email, password);
+
+        return res.status(StatusCodes.OK)
+            .cookie("refresh-token", refreshToken, {
+                httpOnly: true,
+                maxAge: ms('0.5 y')
+            }).json({token: accessToken});
     }
 
-    private login = async (req: Request, res: Response, next: NextFunction) => {
-        try {
-            const {email, password}: LoginDto = req.body;
+    @Post('/google')
+    async loginWithGoogle(@BodyParam("google_token") googleToken: string,
+                          @Res() res: Response) {
 
-            const {accessToken, refreshToken} = await this.authService.login(email, password);
+        const token = await this.authService.loginWithGoogle(googleToken);
 
-            return res.status(StatusCodes.OK)
-                .cookie("refresh-token", refreshToken, {
-                    httpOnly: true,
-                    maxAge: ms('0.5 y')
-                }).json({token: accessToken});
-
-        } catch (e) {
-            next(e);
-        }
+        return res.status(StatusCodes.OK)
+            .cookie("refresh-token", token.refreshToken, {
+                httpOnly: true,
+                maxAge: ms('0.5 y')
+            }).json({token: token.accessToken});
     }
 
-    private loginWithGoogle = async (req: Request, res: Response, next: NextFunction) => {
-        const googleToken = req.body['google_token'];
-        if (!googleToken) {
-            return next(new HttpException(StatusCodes.BAD_REQUEST, 'Google token is required'));
+    @Post("/refreshToken")
+    async refreshAccessToken(@HeaderParam("Authorization") accessToken: string,
+                             @CookieParam("refresh-token") refreshToken: string,
+                             @Res() res: Response) {
+
+        if (!accessToken.startsWith("Bearer ")) {
+            throw new ForbiddenError("Invalid Authorization header");
         }
-        try {
-            const token = await this.authService.loginWithGoogle(googleToken);
-            if (token) {
-                const {accessToken, refreshToken} = token;
-                return res.status(StatusCodes.OK)
-                    .cookie("refresh-token", refreshToken, {
-                        httpOnly: true,
-                        maxAge: ms('0.5 y')
-                    }).json({token: accessToken});
-            }
-        } catch (e) {
-            return next(e)
-        }
+
+        const newToken = await this.authService.reCreateToken(accessToken.substring(7), refreshToken);
+
+        return res.status(StatusCodes.OK)
+            .cookie("refresh-token", newToken.refreshToken, {
+                httpOnly: true,
+                maxAge: ms('0.5 y')
+            }).json({token: newToken.accessToken});
+
     }
 
-    private refreshAccessToken = async (req: Request, res: Response, next: NextFunction) => {
-        const refreshToken = req.cookies['refresh-token'] as string;
-        const accessToken = req.get('Authorization');
-
-        if (!accessToken || !accessToken?.startsWith("Bearer")) {
-            return next(new HttpException(StatusCodes.FORBIDDEN, "Invalid Authorization header"));
-        }
-        if (!refreshToken) {
-            return next(new HttpException(StatusCodes.BAD_REQUEST, "Empty refresh-token cookie"));
-        }
-
-        try {
-            const newToken = await this.authService.reCreateToken(accessToken.substring(7), refreshToken);
-            return res.status(StatusCodes.OK)
-                .cookie("refresh-token", newToken.refreshToken, {
-                    httpOnly: true,
-                    maxAge: ms('0.5 y')
-                }).json({token: newToken.accessToken});
-
-        } catch (e) {
-            return next(e);
-        }
-
-    };
-
-    private register = async (req: Request, res: Response, next: NextFunction) => {
-        const userData: RegisterDto = req.body;
+    @Post("/registration")
+    @HttpCode(StatusCodes.ACCEPTED)
+    async register(@Body() userData: RegisterDto) {
         if (userData.password !== userData.matchedPassword) {
-            return next(new HttpException(StatusCodes.BAD_REQUEST, "Password doesn't match"));
+            throw new BadRequestError("Password doesn't match")
         }
-        try {
-            await this.authService.register(userData);
-            return res.status(StatusCodes.ACCEPTED).send();
-        } catch (e) {
-            return next(e);
-        }
+
+        await this.authService.register(userData);
     }
 
-    private registrationConfirm = async (req: Request, res: Response, next: NextFunction) => {
-        const {token} = req.body;
-        if (!token) {
-            return next(new HttpException(StatusCodes.BAD_REQUEST, "Missing token"));
-        }
-
-        try {
-            await this.authService.activateAccount(token);
-            return res.status(StatusCodes.ACCEPTED).send();
-        } catch (e) {
-            return next(e);
-        }
+    @Post("/registrationConfirm")
+    @HttpCode(StatusCodes.ACCEPTED)
+    async registrationConfirm(@BodyParam("token") token: string) {
+        await this.authService.activateAccount(token);
     }
 
-    private requestResetPwd = async (req: Request, res: Response, next: NextFunction) => {
-        const {email} = req.body;
-        if (!email || !StringUtils.isEmail(email)) {
-            return next(new HttpException(StatusCodes.BAD_REQUEST, "Invalid email"));
-        }
-
-        try {
-            await this.authService.createPwdResetToken(email);
-            return res.status(StatusCodes.ACCEPTED).send();
-        } catch (e) {
-            return next(e);
-        }
+    @Post("/resetPassword")
+    @HttpCode(StatusCodes.ACCEPTED)
+    async requestResetPwd(@BodyParam("email") email: string) {
+        await this.authService.createPwdResetToken(email);
     }
 
-    private validatePwdResetToken = async (req: Request, res: Response, next: NextFunction) => {
-        const token = req.query['token']?.toString();
-        if (!token) {
-            return next(new HttpException(StatusCodes.BAD_REQUEST, "Missing token"));
-        }
-        try {
-            await this.authService.validatePwdResetToken(token);
-            return res.status(StatusCodes.ACCEPTED).send();
-        } catch (e) {
-            return next(e);
-        }
+    @Get("/changePassword")
+    @HttpCode(StatusCodes.ACCEPTED)
+    async validatePwdResetToken(@QueryParam("token") token: string) {
+        await this.authService.validatePwdResetToken(token);
     }
 
-    private resetPassword = async (req: Request, res: Response, next: NextFunction) => {
-        const {token, password, matchedPassword} = req.body;
-        if (!token || password != matchedPassword) {
-            return next(new HttpException(StatusCodes.BAD_REQUEST, "Password doesn't matched or missing token"));
+    @Put("/savePassword")
+    @HttpCode(StatusCodes.ACCEPTED)
+    async resetPassword(@BodyParam("token") token: string,
+                        @Body() newPwd: PasswordDto) {
+        if (newPwd.password !== newPwd.matchedPassword) {
+            throw new BadRequestError("Password doesn't match");
         }
 
-        try {
-            await this.authService.resetPassword(token, password);
-            return res.status(StatusCodes.ACCEPTED).send();
-        } catch (e) {
-            return next(e);
-        }
+        await this.authService.resetPassword(token, newPwd.password);
     }
 }

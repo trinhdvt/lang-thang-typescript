@@ -1,16 +1,10 @@
-import {IsEmail, IsNotEmpty, MinLength} from "class-validator";
+import {IsEmail, IsNotEmpty} from "class-validator";
+import PasswordDto from "./PasswordDto";
 
-export default class RegisterDto {
-
+export default class RegisterDto extends PasswordDto {
     @IsNotEmpty()
     name!: string;
 
     @IsEmail()
     email!: string;
-
-    @MinLength(6)
-    password!: string;
-
-    @MinLength(6)
-    matchedPassword!: string;
 }
