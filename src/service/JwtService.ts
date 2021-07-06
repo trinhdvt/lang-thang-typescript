@@ -1,5 +1,5 @@
 import {Service} from "typedi";
-import jwt, {JwtPayload} from "jsonwebtoken";
+import jwt, {JwtPayload, TokenExpiredError} from "jsonwebtoken";
 import RefreshToken from "../models/RefreshToken";
 import Account from "../models/Account";
 import HttpException from "../exception/HttpException";
@@ -70,11 +70,14 @@ export default class JwtService {
             && rfToken.accessToken === accessToken);
     }
 
-    public isValidAccessToken = (accessToken: string) => {
+    public isValidJwt = (token: string, ignoreExpiration: boolean = false) => {
         try {
-            jwt.verify(accessToken, this.SECRET_KEY);
+            jwt.verify(token, this.SECRET_KEY, {ignoreExpiration: ignoreExpiration});
             return true;
         } catch (err) {
+            if (err instanceof TokenExpiredError && !ignoreExpiration) {
+                return false;
+            }
             // invalid token
             throw new HttpException(StatusCodes.FORBIDDEN, "Invalid token");
         }
