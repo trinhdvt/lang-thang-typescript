@@ -1,13 +1,19 @@
 {
-  "name": "sequelize",
+  "name": "lang-thang-typescript",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start-dev": "rm -rf ./target/* && tsc && node ./target/server.js"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "typescript",
+    "sequelize",
+    "express-js",
+    "routing-controllers"
+  ],
+  "author": "trinh-dvt",
   "license": "ISC",
   "dependencies": {
     "bcrypt": "^5.0.1",
