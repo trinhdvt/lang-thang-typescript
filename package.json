@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start-dev": "rm -rf ./target/* && tsc && node ./target/server.js"
+    "clean": "rm -rf ./target/*",
+    "build": "npm run clean && tsc",
+    "start": "npm run build && node ./target/server.js"
   },
   "keywords": [
     "typescript",
