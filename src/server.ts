@@ -1,11 +1,13 @@
-import "reflect-metadata"
+import AuthController from "./controller/AuthController";
 
 require('dotenv').config();
+import "reflect-metadata"
 import App from "./app";
 import {useContainer, useExpressServer} from "routing-controllers";
-import AuthController from "./controller/AuthController";
 import {Container} from "typedi";
 import {GlobalErrorHandler} from "./middlewares/GlobalErrorHandler";
+import {CurrentUserChecker, PreAuthorize} from "./middlewares/JwtFilterMiddleware";
+import PostController from "./controller/PostController";
 
 useContainer(Container);
 
@@ -23,8 +25,10 @@ useExpressServer(app.getServer(), {
         }
     },
     routePrefix: "/api",
-    controllers: [AuthController],
-    middlewares: [GlobalErrorHandler]
+    controllers: [AuthController, PostController],
+    middlewares: [GlobalErrorHandler],
+    authorizationChecker: PreAuthorize,
+    currentUserChecker: CurrentUserChecker
 })
 
 // connect to database then start server (default port is 8080)

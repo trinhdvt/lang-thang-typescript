@@ -76,15 +76,6 @@ class Post extends Model {
     @HasMany(() => Comment)
     comments?: Comment[];
 
-    getPublishedDate() {
-        return this.publishedDate;
-    }
-
-    setPublishedDate(value: Date) {
-        this.publishedDate = value;
-    }
-
-
 }
 
 export default Post;

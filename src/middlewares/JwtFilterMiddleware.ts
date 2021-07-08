@@ -1,23 +1,36 @@
-import {NextFunction, Request, Response} from "express";
 import {Container} from "typedi";
 import JwtService from "../service/JwtService";
-import httpContext from "express-http-context";
 import IUserCredential from "../interfaces/IUserCredential";
+import {Action} from "routing-controllers";
 
 const jwtService = Container.get(JwtService);
 
-export default function jwtFilterMiddleware(req: Request, res: Response, next: NextFunction) {
-    const authHeader = req.get('Authorization');
+export function PreAuthorize(action: Action, roles: string[]): boolean {
+    const authHeader = action.request.headers['authorization'];
+    if (!authHeader) {
+        return false;
+    }
+
+    const token = authHeader.replace("Bearer ", "");
     try {
-        if (authHeader && authHeader.startsWith("Bearer")) {
-            const accessToken = authHeader.replace("Bearer ", "");
-            if (jwtService.isValidJwt(accessToken)) {
-                const credential: IUserCredential = jwtService.getPayLoad(accessToken);
-                httpContext.set('credential', credential);
+        if (jwtService.isValidJwt(token)) {
+            if (roles.length == 0) {
+                return true;
             }
+
+            const credential: IUserCredential = jwtService.getPayLoad(token);
+            return roles.indexOf(credential.role) != -1;
         }
-        next();
     } catch (e) {
-        next(e);
+    }
+    return false;
+}
+
+export function CurrentUserChecker(action: Action) {
+    if (PreAuthorize(action, [])) {
+        const token = action.request.headers['authorization'].replace("Bearer ", "");
+
+        const credential: IUserCredential = jwtService.getPayLoad(token);
+        return credential;
     }
 }
