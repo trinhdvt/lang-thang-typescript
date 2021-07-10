@@ -38,4 +38,10 @@ export default class PostService {
         }
 
     }
+
+    public async searchPostByKeyword(keyword: string, pageRequest: PageRequest) {
+        let pageOfPost = await this.postRepo.searchPostByKeyword(keyword, pageRequest);
+
+        return pageOfPost.map(post => PostResponseDto.toPostResponseDto(post));
+    }
 }

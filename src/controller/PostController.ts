@@ -16,6 +16,10 @@ export default class PostController {
     async getPosts(@QueryParams() pageRequest: PageRequest) {
         const {prop, keyword} = pageRequest;
 
+        if (keyword) {
+            return await this.postService.searchPostByKeyword(keyword, pageRequest);
+        }
+
         if (prop) {
             return await this.postService.getPopularPost(prop, pageRequest.size);
         }

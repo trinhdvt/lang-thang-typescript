@@ -80,4 +80,35 @@ export default class PostRepository {
 
         return posts;
     }
+
+    public async searchPostByKeyword(keyword: string, pageRequest: PageRequest) {
+        const {page, size} = pageRequest;
+
+        const query = "select p.id,title,published_date,created_date,slug, " +
+            "match(title, content) against(:key in natural language mode) as score " +
+            "from post p " +
+            "where match(title, content) against(:key in natural language mode) " +
+            "and status=1 " +
+            "order by score desc " +
+            "limit :offset, :limit";
+
+        let posts = await sequelize.query(query, {
+            replacements: {
+                key: keyword,
+                offset: page * size,
+                limit: size
+            },
+            type: QueryTypes.SELECT,
+            mapToModel: true,
+            model: Post
+        });
+
+        for (const p of posts) {
+            p.comments = await p.$get('comments');
+            p.bookmarkedAccount = await p.$get('bookmarkedAccount');
+        }
+
+        return posts;
+    }
+
 }
