@@ -18,13 +18,13 @@ import PostRequestDto from "../dto/PostRequestDto";
 import {Response} from "express";
 
 @Service()
-@JsonController("/post")
+@JsonController()
 export default class PostController {
 
     constructor(private postService: PostService) {
     }
 
-    @Get()
+    @Get("/post")
     @HttpCode(StatusCodes.OK)
     async getPosts(@QueryParams() pageRequest: PageRequest) {
         const {prop, keyword} = pageRequest;
@@ -40,7 +40,7 @@ export default class PostController {
         return await this.postService.getPostByPublishDate(pageRequest);
     }
 
-    @Get("/:id")
+    @Get("/post/:id")
     @HttpCode(StatusCodes.OK)
     async getPostById(
         @Param("id") id: number,
@@ -51,9 +51,9 @@ export default class PostController {
         return await this.postService.getPublicPostById(id, loggedInId);
     }
 
+    @Get("/post/:slug/edit")
     @Authorized()
     @HttpCode(StatusCodes.OK)
-    @Get("/:slug/edit")
     async getPostContentBySlug(@Param("slug") slug: string,
                                @CurrentUser() user: IUserCredential) {
         const userId = user.id;
@@ -61,7 +61,7 @@ export default class PostController {
         return await this.postService.getPostContentBySlug(slug, userId);
     }
 
-    @Post()
+    @Post("/post")
     @Authorized()
     @HttpCode(StatusCodes.OK)
     async publishNewPost(@Body() requestDto: PostRequestDto,
@@ -70,7 +70,7 @@ export default class PostController {
         return await this.postService.addNewPostOrDraft(requestDto, author.id, true);
     }
 
-    @Put("/:postId")
+    @Put("/post/:postId")
     @Authorized()
     @HttpCode(StatusCodes.OK)
     async updatePost(@Body() requestDto: PostRequestDto,
@@ -80,17 +80,8 @@ export default class PostController {
         return await this.postService.updatePostById(postId, requestDto, author.id);
     }
 
-    @Post("/draft")
-    @Authorized()
-    @HttpCode(StatusCodes.OK)
-    async createNewDraft(@Body() requestDto: PostRequestDto,
-                         @CurrentUser() author: IUserCredential) {
 
-        return await this.postService.addNewPostOrDraft(requestDto, author.id, false);
-    }
-
-
-    @Delete("/:postId")
+    @Delete("/post/:postId")
     @Authorized()
     async deletePost(@Param("postId") postId: number,
                      @CurrentUser() author: IUserCredential,
@@ -99,6 +90,16 @@ export default class PostController {
         await this.postService.deletePostById(postId, author.id);
 
         return resp.status(StatusCodes.NO_CONTENT).send();
+    }
+
+
+    @Post("/draft")
+    @Authorized()
+    @HttpCode(StatusCodes.OK)
+    async createNewDraft(@Body() requestDto: PostRequestDto,
+                         @CurrentUser() author: IUserCredential) {
+
+        return await this.postService.addNewPostOrDraft(requestDto, author.id, false);
     }
 
 
