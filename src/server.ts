@@ -8,6 +8,7 @@ import {Container} from "typedi";
 import {GlobalErrorHandler} from "./middlewares/GlobalErrorHandler";
 import {CurrentUserChecker, PreAuthorize} from "./middlewares/JwtFilterMiddleware";
 import PostController from "./controller/PostController";
+import UploadController from "./controller/UploadController";
 
 useContainer(Container);
 
@@ -25,7 +26,7 @@ useExpressServer(app.getServer(), {
         }
     },
     routePrefix: "/api",
-    controllers: [AuthController, PostController],
+    controllers: [AuthController, PostController, UploadController],
     middlewares: [GlobalErrorHandler],
     authorizationChecker: PreAuthorize,
     currentUserChecker: CurrentUserChecker
