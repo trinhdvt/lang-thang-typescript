@@ -69,5 +69,12 @@ export default class PostController {
         return await this.postService.addNewPostOrDraft(requestDto, author.id, true);
     }
 
+    @Post("/draft")
+    @Authorized()
+    @HttpCode(StatusCodes.OK)
+    async createNewDraft(@Body() requestDto: PostRequestDto,
+                         @CurrentUser() author: IUserCredential) {
 
+        return await this.postService.addNewPostOrDraft(requestDto, author.id, false);
+    }
 }
