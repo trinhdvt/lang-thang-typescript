@@ -6,7 +6,7 @@ import {
     HttpCode,
     JsonController,
     Param,
-    Post,
+    Post, Put,
     QueryParams
 } from "routing-controllers";
 import {Service} from "typedi";
@@ -69,6 +69,16 @@ export default class PostController {
         return await this.postService.addNewPostOrDraft(requestDto, author.id, true);
     }
 
+    @Put("/:postId")
+    @Authorized()
+    @HttpCode(StatusCodes.OK)
+    async updatePost(@Body() requestDto: PostRequestDto,
+                     @Param("postId") postId: number,
+                     @CurrentUser() author: IUserCredential) {
+
+        return await this.postService.updatePostById(postId, requestDto, author.id);
+    }
+
     @Post("/draft")
     @Authorized()
     @HttpCode(StatusCodes.OK)
@@ -77,4 +87,6 @@ export default class PostController {
 
         return await this.postService.addNewPostOrDraft(requestDto, author.id, false);
     }
+
+
 }

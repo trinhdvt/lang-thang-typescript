@@ -104,5 +104,32 @@ export default class PostService {
 
         return {slug: post.slug};
     }
+
+    public async updatePostById(postId: number, requestDto: PostRequestDto, userId: number) {
+        const post = await this.postRepo.findPostById(postId);
+        if (!post) {
+            throw new NotFoundError("Post not found");
+        }
+
+        if (post.author.id !== userId) {
+            throw new UnauthorizedError("Access denied");
+        }
+
+        const {title, content, postThumbnail} = requestDto;
+        const slug = `${StringUtils.createSlug(title)}-${Date.now()}`;
+
+        post.title = title;
+        post.content = content;
+        post.postThumbnail = postThumbnail;
+        post.slug = slug;
+        if (!post.status) {
+            post.status = true;
+            post.publishedDate = new Date();
+        }
+
+        await post.save();
+
+        return {slug: post.slug};
+    }
 }
 
