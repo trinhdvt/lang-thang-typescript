@@ -28,7 +28,7 @@ export default class PageRequest {
 
     @IsOptional()
     @IsEnum(PopularType, {message: "Prop must be bookmark either comment"})
-    prop: PopularType = PopularType.BOOKMARK;
+    prop: PopularType;
 
     @IsOptional()
     @IsNotEmpty({message: "Search keyword cannot be empty"})

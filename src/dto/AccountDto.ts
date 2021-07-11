@@ -1,7 +1,6 @@
 import mapper from "js-model-mapper";
 import {plainToClass} from "class-transformer";
 import Account from "../models/Account";
-import Role from "../models/Role";
 
 export const accountMapper = mapper([{
     name: "accountId",
@@ -20,7 +19,7 @@ export class AccountDto {
     role: string;
 
     // special mapping
-    isFollowed: boolean;
+    isFollowed: boolean = false;
     postCount: number;
     followCount: number;
     bookmarkOnOwnPostCount: number;
@@ -30,8 +29,8 @@ export class AccountDto {
     public static toBasicAccount(entity: Account) {
         const json = accountMapper(entity);
 
-        let accountDto = plainToClass(AccountDto, json);
-        accountDto.role = entity.role == Role.ROLE_ADMIN ? Role.ROLE_ADMIN : undefined;
+        let accountDto: AccountDto = plainToClass(AccountDto, json);
+        accountDto.role = entity.role;
 
         return accountDto;
     }

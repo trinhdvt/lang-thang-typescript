@@ -14,8 +14,8 @@ export class PostResponseDto {
     author: AccountDto;
     content: string;
     slug: string;
-    isOwner: boolean;
-    isBookmarked: boolean;
+    isOwner: boolean = false;
+    isBookmarked: boolean = false;
     postThumbnail: string;
     createdDate: Date;
     publishedDate: Date;
@@ -23,11 +23,10 @@ export class PostResponseDto {
     commentCount: number;
 
     public static toPostResponseDto(entity: Post): PostResponseDto {
-        if (!entity)
-            return null;
 
         const json = postMapper(entity);
-        const postDto = plainToClass(PostResponseDto, json);
+        const postDto: PostResponseDto = plainToClass(PostResponseDto, json);
+
         postDto.bookmarkedCount = entity.bookmarkedAccount?.length;
         postDto.commentCount = entity.comments?.length;
 
