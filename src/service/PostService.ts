@@ -6,6 +6,8 @@ import {HttpError, NotFoundError, UnauthorizedError} from "routing-controllers";
 import {StatusCodes} from "http-status-codes";
 import Post from "../models/Post";
 import {AccountDto} from "../dto/AccountDto";
+import PostRequestDto from "../dto/PostRequestDto";
+import StringUtils from "../utils/StringUtils";
 
 @Service()
 export default class PostService {
@@ -80,6 +82,27 @@ export default class PostService {
         }
 
         return PostResponseDto.toPostResponseDto(post);
+    }
+
+    public async addNewPostOrDraft(requestDto: PostRequestDto, authorId: number, isPublic: boolean) {
+        const {title, content, postThumbnail} = requestDto;
+
+        let post = Post.build({
+            accountId: authorId,
+            title: title,
+            slug: `${StringUtils.createSlug(title)}-${Date.now()}`,
+            content: content,
+            postThumbnail: postThumbnail,
+            status: isPublic,
+            createdDate: new Date()
+        });
+        if (isPublic) {
+            post.publishedDate = new Date();
+        }
+
+        post = await post.save();
+
+        return {slug: post.slug};
     }
 }
 

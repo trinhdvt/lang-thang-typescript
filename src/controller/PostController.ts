@@ -1,9 +1,20 @@
-import {Authorized, CurrentUser, Get, HttpCode, JsonController, Param, QueryParams} from "routing-controllers";
+import {
+    Authorized,
+    Body,
+    CurrentUser,
+    Get,
+    HttpCode,
+    JsonController,
+    Param,
+    Post,
+    QueryParams
+} from "routing-controllers";
 import {Service} from "typedi";
 import PageRequest from "../dto/PageRequest";
 import {StatusCodes} from "http-status-codes";
 import PostService from "../service/PostService";
 import IUserCredential from "../interfaces/IUserCredential";
+import PostRequestDto from "../dto/PostRequestDto";
 
 @Service()
 @JsonController("/post")
@@ -40,6 +51,7 @@ export default class PostController {
     }
 
     @Authorized()
+    @HttpCode(StatusCodes.OK)
     @Get("/:slug/edit")
     async getPostContentBySlug(@Param("slug") slug: string,
                                @CurrentUser() user: IUserCredential) {
@@ -47,4 +59,15 @@ export default class PostController {
 
         return await this.postService.getPostContentBySlug(slug, userId);
     }
+
+    @Post()
+    @Authorized()
+    @HttpCode(StatusCodes.OK)
+    async publishNewPost(@Body() requestDto: PostRequestDto,
+                         @CurrentUser() author: IUserCredential) {
+
+        return await this.postService.addNewPostOrDraft(requestDto, author.id, true);
+    }
+
+
 }
