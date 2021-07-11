@@ -2,9 +2,10 @@ import {Service} from "typedi";
 import PostRepository from "../repository/PostRepository";
 import PageRequest, {PopularType} from "../dto/PageRequest";
 import {PostResponseDto} from "../dto/PostResponseDto";
-import {HttpError} from "routing-controllers";
+import {HttpError, NotFoundError} from "routing-controllers";
 import {StatusCodes} from "http-status-codes";
 import Post from "../models/Post";
+import {AccountDto} from "../dto/AccountDto";
 
 @Service()
 export default class PostService {
@@ -43,5 +44,28 @@ export default class PostService {
         let pageOfPost = await this.postRepo.searchPostByKeyword(keyword, pageRequest);
 
         return pageOfPost.map(post => PostResponseDto.toPostResponseDto(post));
+    }
+
+    public async getPostById(id: number, loggedInId: number | undefined) {
+        const post = await this.postRepo.findPostById(id);
+        if (!post) {
+            throw new NotFoundError("Not found");
+        }
+
+        const author = post.author;
+
+        const authorDto = AccountDto.toBasicAccount(author);
+        authorDto.postCount = author.posts.length;
+        authorDto.followCount = author.followingMe.length;
+
+        const postDto = PostResponseDto.toPostResponseDto(post);
+        postDto.author = authorDto;
+        postDto.isOwner = authorDto.accountId == loggedInId;
+        for (const acc of post.bookmarkedAccount) {
+            if (acc.id == loggedInId)
+                postDto.isBookmarked = true;
+        }
+
+        return postDto;
     }
 }

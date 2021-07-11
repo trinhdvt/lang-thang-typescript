@@ -111,4 +111,31 @@ export default class PostRepository {
         return posts;
     }
 
+    public async findPostById(id: number) {
+        return await Post.scope('public').findByPk(id, {
+            include: [
+                {
+                    model: Account,
+                    as: "author",
+                    include: [{
+                        model: Post,
+                        as: 'posts',
+                        attributes: ['id']
+                    }, {
+                        model: Account,
+                        as: "followingMe",
+                        attributes: ['id']
+                    }]
+                }, {
+                    model: Comment,
+                    as: 'comments',
+                    attributes: ['id']
+                }, {
+                    model: Account,
+                    as: "bookmarkedAccount",
+                    attributes: ["id"],
+                }
+            ]
+        });
+    }
 }
