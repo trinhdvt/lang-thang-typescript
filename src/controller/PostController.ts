@@ -111,4 +111,16 @@ export default class PostController {
 
         return await this.postService.getDraftById(draftId, author.id);
     }
+
+    @Put("/draft/:draftId")
+    @Authorized()
+    async updateDraft(@Param("draftId") draftId: number,
+                      @Body() requestDto: PostRequestDto,
+                      @CurrentUser() author: IUserCredential,
+                      @Res() resp: Response) {
+
+        await this.postService.updateDraftById(draftId, requestDto, author.id);
+
+        return resp.status(StatusCodes.NO_CONTENT).send();
+    }
 }

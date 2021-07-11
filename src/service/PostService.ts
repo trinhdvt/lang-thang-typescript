@@ -157,5 +157,26 @@ export default class PostService {
 
         return PostResponseDto.toPostResponseDto(post);
     }
+
+    public async updateDraftById(draftId: number, requestDto: PostRequestDto, authorId: number) {
+        const post = await this.postRepo.findPostById(draftId);
+        if (!post) {
+            throw new NotFoundError("No draft found");
+        }
+        if (post.author.id !== authorId) {
+            throw new UnauthorizedError("Permission denied");
+        }
+
+        const {title, content, postThumbnail} = requestDto;
+        const slug = `${StringUtils.createSlug(title)}-${Date.now()}`;
+
+        post.title = title;
+        post.content = content;
+        post.postThumbnail = postThumbnail;
+        post.slug = slug;
+        post.status = false;
+
+        await post.save();
+    }
 }
 
