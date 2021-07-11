@@ -2,7 +2,7 @@ import {Service} from "typedi";
 import PostRepository from "../repository/PostRepository";
 import PageRequest, {PopularType} from "../dto/PageRequest";
 import {PostResponseDto} from "../dto/PostResponseDto";
-import {HttpError, NotFoundError} from "routing-controllers";
+import {HttpError, NotFoundError, UnauthorizedError} from "routing-controllers";
 import {StatusCodes} from "http-status-codes";
 import Post from "../models/Post";
 import {AccountDto} from "../dto/AccountDto";
@@ -68,4 +68,18 @@ export default class PostService {
 
         return postDto;
     }
+
+    public async getPostContentBySlug(slug: string, userId: number) {
+        const post = await this.postRepo.getPostBySlug(slug);
+        if (!post) {
+            throw new NotFoundError("Not found");
+        }
+
+        if (post.author.id != userId) {
+            throw new UnauthorizedError("Not authorized");
+        }
+
+        return PostResponseDto.toPostResponseDto(post);
+    }
 }
+

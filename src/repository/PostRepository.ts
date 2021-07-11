@@ -138,4 +138,18 @@ export default class PostRepository {
             ]
         });
     }
+
+    public async getPostBySlug(slug: string) {
+        return await Post.findOne({
+            where: {
+                slug: slug
+            },
+            include: [{
+                model: Account,
+                as: 'author',
+                attributes: ['id']
+            }]
+        });
+    }
 }
+

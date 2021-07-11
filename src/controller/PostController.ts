@@ -1,4 +1,4 @@
-import {CurrentUser, Get, HttpCode, JsonController, Param, QueryParams} from "routing-controllers";
+import {Authorized, CurrentUser, Get, HttpCode, JsonController, Param, QueryParams} from "routing-controllers";
 import {Service} from "typedi";
 import PageRequest from "../dto/PageRequest";
 import {StatusCodes} from "http-status-codes";
@@ -37,5 +37,14 @@ export default class PostController {
         let loggedInId = user?.id;
 
         return await this.postService.getPostById(id, loggedInId);
+    }
+
+    @Authorized()
+    @Get("/:slug/edit")
+    async getPostContentBySlug(@Param("slug") slug: string,
+                               @CurrentUser() user: IUserCredential) {
+        const userId = user.id;
+
+        return await this.postService.getPostContentBySlug(slug, userId);
     }
 }
