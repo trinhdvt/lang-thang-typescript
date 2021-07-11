@@ -48,8 +48,8 @@ export default class PostService {
         return pageOfPost.map(post => PostResponseDto.toPostResponseDto(post));
     }
 
-    public async getPostById(id: number, loggedInId: number | undefined) {
-        const post = await this.postRepo.findPostById(id);
+    public async getPublicPostById(id: number, loggedInId: number | undefined) {
+        const post = await this.postRepo.findPostByIdAndScope(id, "public");
         if (!post) {
             throw new NotFoundError("Not found");
         }
@@ -130,6 +130,19 @@ export default class PostService {
         await post.save();
 
         return {slug: post.slug};
+    }
+
+    public async deletePostById(postId: number, authorId: number) {
+        const post = await this.postRepo.findPostById(postId);
+        if (!post) {
+            throw new NotFoundError("Post not found");
+        }
+
+        if (post.author.id !== authorId) {
+            throw new UnauthorizedError("Permission denied");
+        }
+
+        await post.destroy();
     }
 }
 

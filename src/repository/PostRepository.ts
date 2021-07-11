@@ -111,8 +111,8 @@ export default class PostRepository {
         return posts;
     }
 
-    public async findPostById(id: number) {
-        return await Post.scope('public').findByPk(id, {
+    public async findPostByIdAndScope(id: number, scope: 'public' | 'draft' = 'public') {
+        return await Post.scope(scope).findByPk(id, {
             include: [
                 {
                     model: Account,
@@ -136,6 +136,15 @@ export default class PostRepository {
                     attributes: ["id"],
                 }
             ]
+        });
+    }
+
+    public async findPostById(postId: number) {
+        return await Post.findByPk(postId, {
+            include: [{
+                model: Account,
+                as: 'author'
+            }]
         });
     }
 

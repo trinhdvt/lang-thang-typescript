@@ -1,13 +1,13 @@
 import {
     Authorized,
     Body,
-    CurrentUser,
+    CurrentUser, Delete,
     Get,
     HttpCode,
     JsonController,
     Param,
     Post, Put,
-    QueryParams
+    QueryParams, Res
 } from "routing-controllers";
 import {Service} from "typedi";
 import PageRequest from "../dto/PageRequest";
@@ -15,6 +15,7 @@ import {StatusCodes} from "http-status-codes";
 import PostService from "../service/PostService";
 import IUserCredential from "../interfaces/IUserCredential";
 import PostRequestDto from "../dto/PostRequestDto";
+import {Response} from "express";
 
 @Service()
 @JsonController("/post")
@@ -47,7 +48,7 @@ export default class PostController {
 
         let loggedInId = user?.id;
 
-        return await this.postService.getPostById(id, loggedInId);
+        return await this.postService.getPublicPostById(id, loggedInId);
     }
 
     @Authorized()
@@ -88,5 +89,16 @@ export default class PostController {
         return await this.postService.addNewPostOrDraft(requestDto, author.id, false);
     }
 
+
+    @Delete("/:postId")
+    @Authorized()
+    async deletePost(@Param("postId") postId: number,
+                     @CurrentUser() author: IUserCredential,
+                     @Res() resp: Response) {
+
+        await this.postService.deletePostById(postId, author.id);
+
+        return resp.status(StatusCodes.NO_CONTENT).send();
+    }
 
 }
