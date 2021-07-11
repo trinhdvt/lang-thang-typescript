@@ -2,7 +2,6 @@ import express from "express";
 import sequelize from "./models";
 import cookieParser from "cookie-parser";
 import bodyParser from "body-parser";
-import multer from "multer";
 
 export default class App {
 
@@ -29,7 +28,6 @@ export default class App {
     public boostrap() {
         this.app.use(bodyParser.json());
         this.app.use(bodyParser.urlencoded({extended: true}));
-        this.app.use(multer().none());
         this.app.use(cookieParser());
     }
 
