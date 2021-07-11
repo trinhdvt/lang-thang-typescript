@@ -101,4 +101,13 @@ export default class PostController {
         return resp.status(StatusCodes.NO_CONTENT).send();
     }
 
+
+    @Get("/draft/:draftId")
+    @Authorized()
+    @HttpCode(StatusCodes.OK)
+    async getDraftById(@Param("draftId") draftId: number,
+                       @CurrentUser() author: IUserCredential) {
+
+        return await this.postService.getDraftById(draftId, author.id);
+    }
 }

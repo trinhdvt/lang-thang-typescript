@@ -144,5 +144,18 @@ export default class PostService {
 
         await post.destroy();
     }
+
+    public async getDraftById(draftId: number, authorId: number) {
+        const post = await this.postRepo.findPostByIdAndScope(draftId, 'draft');
+        if (!post) {
+            throw new NotFoundError("Draft not found");
+        }
+
+        if (post.author.id !== authorId) {
+            throw new UnauthorizedError("Access denied");
+        }
+
+        return PostResponseDto.toPostResponseDto(post);
+    }
 }
 
