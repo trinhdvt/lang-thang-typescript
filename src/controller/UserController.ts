@@ -1,5 +1,14 @@
 import {Service} from "typedi";
-import {BadRequestError, CurrentUser, Get, HttpCode, JsonController, Param, QueryParam} from "routing-controllers";
+import {
+    Authorized,
+    BadRequestError,
+    CurrentUser,
+    Get,
+    HttpCode,
+    JsonController,
+    Param,
+    QueryParam
+} from "routing-controllers";
 import UserService from "../service/UserService";
 import IUserCredential from "../interfaces/IUserCredential";
 import {StatusCodes} from "http-status-codes";
@@ -31,4 +40,13 @@ export default class UserController {
 
         return await this.userService.getUserInfoByEmail(email, currentUser?.id);
     }
+
+    @Get("/whoami")
+    @Authorized()
+    @HttpCode(StatusCodes.OK)
+    async whoAmI(@CurrentUser() currentUser: IUserCredential) {
+
+        return await this.userService.getUserInfoById(currentUser.id, undefined);
+    }
+
 }
