@@ -7,19 +7,22 @@ import {
     HttpCode,
     JsonController,
     Param,
-    QueryParam
+    QueryParam, QueryParams
 } from "routing-controllers";
 import UserService from "../service/UserService";
 import IUserCredential from "../interfaces/IUserCredential";
 import {StatusCodes} from "http-status-codes";
 import {isEmail} from "class-validator";
+import PageRequest from "../dto/PageRequest";
+import PostService from "../service/PostService";
 
 @Service()
 @JsonController()
 export default class UserController {
 
 
-    constructor(private userService: UserService) {
+    constructor(private userService: UserService,
+                private postService: PostService) {
     }
 
     @Get("/user/:userId")
@@ -49,4 +52,11 @@ export default class UserController {
         return await this.userService.getUserInfoById(currentUser.id, undefined);
     }
 
+    @Get("/user/posts/:userId")
+    @HttpCode(StatusCodes.OK)
+    async getAllPostOfUserById(@Param("userId") userId: number,
+                               @QueryParams() pageRequest: PageRequest) {
+
+        return await this.postService.getPostByUserId(userId, pageRequest);
+    }
 }

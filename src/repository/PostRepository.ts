@@ -37,6 +37,35 @@ export default class PostRepository {
         });
     }
 
+    public async getPostOfUser(userId: number, pageRequest: PageRequest) {
+        const {page, size} = pageRequest;
+        const {attribute, direction} = pageRequest.sort;
+
+        return await Post.scope("public").findAll({
+            where: {
+                accountId: userId
+            },
+            offset: page * size,
+            limit: size,
+            attributes: {
+                exclude: ["content"],
+            },
+            order: [[attribute ?? "publishedDate", direction]],
+            include: [
+                {
+                    model: Account,
+                    as: "bookmarkedAccount",
+                    attributes: ["id"],
+                },
+                {
+                    model: Comment,
+                    as: "comments",
+                    attributes: ["id"],
+                },
+            ],
+        });
+    }
+
     public async getPopularPostByBookmarkCount(size: number) {
         const query = `select id, title, published_date, created_date, slug
                        from post p

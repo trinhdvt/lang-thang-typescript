@@ -178,5 +178,11 @@ export default class PostService {
 
         await post.save();
     }
+
+    public async getPostByUserId(userId: number, pageRequest: PageRequest) {
+        const pageOfPost = await this.postRepo.getPostOfUser(userId, pageRequest);
+
+        return pageOfPost.map(post => PostResponseDto.toPostResponseDto(post));
+    }
 }
 
