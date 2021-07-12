@@ -38,11 +38,13 @@ export default class PostRepository {
     }
 
     public async getPopularPostByBookmarkCount(size: number) {
-        const query = "select id,title,published_date,created_date,slug " +
-            " from post p join bookmarked_post bp on p.id = bp.post_id " +
-            "where p.status=true " +
-            "group by bp.post_id " +
-            "order by count(bp.post_id) desc limit ?";
+        const query = `select id, title, published_date, created_date, slug
+                       from post p
+                                join bookmarked_post bp on p.id = bp.post_id
+                       where p.status = true
+                       group by bp.post_id
+                       order by count(bp.post_id) desc
+                       limit ?`;
 
         let posts = await sequelize.query(query, {
             replacements: [size],
@@ -84,13 +86,17 @@ export default class PostRepository {
     public async searchPostByKeyword(keyword: string, pageRequest: PageRequest) {
         const {page, size} = pageRequest;
 
-        const query = "select p.id,title,published_date,created_date,slug, " +
-            "match(title, content) against(:key in natural language mode) as score " +
-            "from post p " +
-            "where match(title, content) against(:key in natural language mode) " +
-            "and status=1 " +
-            "order by score desc " +
-            "limit :offset, :limit";
+        const query = `select p.id,
+                              title,
+                              published_date,
+                              created_date,
+                              slug,
+                              match(title, content) against(:key in natural language mode) as score
+                       from post p
+                       where match(title, content) against(:key in natural language mode)
+                         and status = 1
+                       order by score desc
+                       limit :offset, :limit`;
 
         let posts = await sequelize.query(query, {
             replacements: {
