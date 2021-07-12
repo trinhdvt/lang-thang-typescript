@@ -1,5 +1,3 @@
-import AuthController from "./controller/AuthController";
-
 require('dotenv').config();
 import "reflect-metadata"
 import App from "./app";
@@ -7,8 +5,6 @@ import {useContainer, useExpressServer} from "routing-controllers";
 import {Container} from "typedi";
 import {GlobalErrorHandler} from "./middlewares/GlobalErrorHandler";
 import {CurrentUserChecker, PreAuthorize} from "./middlewares/JwtFilterMiddleware";
-import PostController from "./controller/PostController";
-import UploadController from "./controller/UploadController";
 
 useContainer(Container);
 
@@ -26,7 +22,7 @@ useExpressServer(app.getServer(), {
         }
     },
     routePrefix: "/api",
-    controllers: [AuthController, PostController, UploadController],
+    controllers: [__dirname + "/controller/*.js"],
     middlewares: [GlobalErrorHandler],
     authorizationChecker: PreAuthorize,
     currentUserChecker: CurrentUserChecker
