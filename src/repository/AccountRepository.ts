@@ -60,7 +60,16 @@ export default class AccountRepository {
             where: {
                 email: email,
                 enabled: enabled
-            }
+            },
+            include: [{
+                model: Account,
+                as: 'followingMe',
+                attributes: ['id']
+            }, {
+                model: Post,
+                as: 'posts',
+                attributes: ['id']
+            }]
         });
     }
 
